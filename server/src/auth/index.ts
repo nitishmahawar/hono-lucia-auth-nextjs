@@ -11,6 +11,8 @@ import {
   OAuth2RequestError,
 } from "arctic";
 import { error } from "console";
+import { auth } from "../middleware/auth";
+import { Session, User } from "lucia";
 
 // Login schema
 const loginSchema = z.object({
@@ -31,7 +33,12 @@ const registerSchema = z.object({
     ),
 });
 
-const app = new Hono();
+const app = new Hono<{
+  Variables: {
+    user: User | null;
+    session: Session | null;
+  };
+}>();
 
 app.post("/register", zValidator("json", registerSchema), async (c) => {
   try {
@@ -259,6 +266,13 @@ app.get("/callback/google", async (c) => {
 
     return c.json("Internal Server Error", 500);
   }
+});
+
+app.get("/profile", auth, async (c) => {
+  const user = c.get("user");
+  const session = c.get("session");
+
+  return c.json({ user, session });
 });
 
 export default app;

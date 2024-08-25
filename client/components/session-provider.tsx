@@ -6,22 +6,20 @@ import React, {
   useCallback,
 } from "react";
 import { useRouter } from "next/router";
-
-// Define the shape of our session object
-interface Session {
-  user: {
-    id: string;
-    email: string;
-    // Add any other user properties you need
-  } | null;
-  // Add any other session properties you need
-}
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { User } from "@/types/auth";
 
 // Define the shape of our context
 interface SessionContextType {
-  session: Session | null;
+  session?: {
+    expiresAt?: string;
+    fresh?: boolean;
+    id?: string;
+    userId?: string;
+    user?: User;
+  };
   loading: boolean;
-  refreshSession: () => Promise<void>;
 }
 
 // Create the context
@@ -45,44 +43,14 @@ interface SessionProviderProps {
 export const SessionProvider: React.FC<SessionProviderProps> = ({
   children,
 }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
-
-  // Function to fetch the session from your Hono backend
-  const fetchSession = async () => {
-    try {
-      const response = await fetch("/api/auth/session", {
-        credentials: "include", // Important for including cookies
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSession(data);
-      } else {
-        setSession(null);
-      }
-    } catch (error) {
-      console.error("Failed to fetch session:", error);
-      setSession(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch the session when the component mounts
-  useEffect(() => {
-    fetchSession();
-  }, []);
-
-  // Function to refresh the session
-  const refreshSession = useCallback(async () => {
-    await fetchSession();
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: ["session"],
+    queryFn: api.auth.profile,
+  });
 
   const value = {
-    session,
-    loading,
-    refreshSession,
+    session: { ...data?.session, user: data?.user },
+    loading: isLoading,
   };
 
   return (

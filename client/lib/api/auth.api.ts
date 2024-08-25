@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import axios from "../axios";
+import { Session, User } from "@/types/auth";
 
 const login = async (body: { email: string; password: string }) => {
   try {
@@ -59,6 +60,22 @@ const logout = async () => {
   }
 };
 
-const authApi = { login, register, logout, google };
+const profile = async () => {
+  try {
+    const { data } = await axios.get("/api/auth/profile");
+    return data as { user: User; session: Session };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(
+        error.response?.data?.error || error.message || "Something went wrong!"
+      );
+    }
+    throw error instanceof Error
+      ? error
+      : new Error("An unexpected error occurred");
+  }
+};
+
+const authApi = { login, register, logout, google, profile };
 
 export default authApi;

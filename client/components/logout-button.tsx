@@ -2,7 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { Button } from "./ui/button";
-import { LogOut } from "lucide-react";
+import { Loader, LogOut } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,12 @@ const LogoutButton = () => {
   });
   return (
     <Button onClick={() => mutate()} disabled={isPending}>
-      Logout <LogOut size={20} className="ml-2" />
+      {isPending ? "Logging Out..." : "Logout"}{" "}
+      {isPending ? (
+        <Loader size={20} className="animate-spin" />
+      ) : (
+        <LogOut size={20} className="ml-2" />
+      )}
     </Button>
   );
 };

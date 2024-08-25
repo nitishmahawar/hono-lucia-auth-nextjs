@@ -1,6 +1,7 @@
 "use client";
 import React, { FC, useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import SessionProvider from "./session-provider";
 
 interface ProviderProps {
   children: React.ReactNode;
@@ -9,7 +10,9 @@ interface ProviderProps {
 const Provider: FC<ProviderProps> = ({ children }) => {
   const [queryClient] = useState(() => new QueryClient());
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>{children}</SessionProvider>
+    </QueryClientProvider>
   );
 };
 
