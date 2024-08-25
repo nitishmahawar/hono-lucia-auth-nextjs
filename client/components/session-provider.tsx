@@ -5,7 +5,6 @@ import React, {
   useContext,
   useCallback,
 } from "react";
-import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { User } from "@/types/auth";
@@ -13,13 +12,10 @@ import { User } from "@/types/auth";
 // Define the shape of our context
 interface SessionContextType {
   session?: {
-    expiresAt?: string;
-    fresh?: boolean;
-    id?: string;
-    userId?: string;
-    user?: User;
+    expiresAt: string;
+    user: User;
   };
-  loading: boolean;
+  status: "loading" | "authenticated" | "unauthenticated";
 }
 
 // Create the context
@@ -43,14 +39,25 @@ interface SessionProviderProps {
 export const SessionProvider: React.FC<SessionProviderProps> = ({
   children,
 }) => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["session"],
     queryFn: api.auth.profile,
   });
 
-  const value = {
-    session: { ...data?.session, user: data?.user },
-    loading: isLoading,
+  let status: "loading" | "authenticated" | "unauthenticated";
+  if (isLoading) {
+    status = "loading";
+  } else if (isError || !data?.session) {
+    status = "unauthenticated";
+  } else {
+    status = "authenticated";
+  }
+
+  const value: SessionContextType = {
+    session: data
+      ? { expiresAt: data.session.expiresAt, user: data.user }
+      : undefined,
+    status: status,
   };
 
   return (
