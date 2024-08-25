@@ -133,36 +133,32 @@ app.post("/logout", async (c) => {
   return c.json({ message: "Logged out successfully" }, 200);
 });
 
-app.get(
-  "/google",
+app.get("/google", async (c) => {
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
 
-  async (c) => {
-    const state = generateState();
-    const codeVerifier = generateCodeVerifier();
+  const url = await google.createAuthorizationURL(state, codeVerifier, {
+    scopes: ["profile", "email"],
+  });
 
-    const url = await google.createAuthorizationURL(state, codeVerifier, {
-      scopes: ["profile", "email"],
-    });
+  setCookie(c, "google_oauth_state", state, {
+    httpOnly: true,
+    path: "/",
+    maxAge: 3600,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 
-    setCookie(c, "google_oauth_state", state, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 3600,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+  setCookie(c, "google_oauth_code_verifier", codeVerifier, {
+    httpOnly: true,
+    path: "/",
+    maxAge: 3600,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
 
-    setCookie(c, "google_oauth_code_verifier", codeVerifier, {
-      httpOnly: true,
-      path: "/",
-      maxAge: 3600,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-
-    return c.json({ url: url.toString() });
-  }
-);
+  return c.json({ url: url.toString() });
+});
 
 app.get("/callback/google", async (c) => {
   const url = new URL(c.req.url);

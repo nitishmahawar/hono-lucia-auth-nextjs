@@ -1,16 +1,10 @@
 import LogoutButton from "@/components/logout-button";
-import { useSession } from "@/components/session-provider";
-import { api } from "@/lib/api";
 import { getUser } from "@/lib/get-user";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Page = async () => {
-  // const { session } = useSession();
-
-  // const { user } = await api.auth.profile();
   const user = await getUser();
 
   if (!user) {

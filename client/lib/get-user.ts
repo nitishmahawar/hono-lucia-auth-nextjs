@@ -1,7 +1,8 @@
 import { User } from "@/types/auth";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
-export async function getUser() {
+export const getUser = cache(async () => {
   const cookieStore = cookies();
   const sessionId = cookieStore.get("auth_session");
 
@@ -20,4 +21,4 @@ export async function getUser() {
   }
 
   return (await response.json()).user as User;
-}
+});
